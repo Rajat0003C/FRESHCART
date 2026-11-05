@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FreshCart – Online Grocery Store</title>
+<meta name="description" content="Fresh fruits, vegetables, dairy and daily essentials delivered to your door.">
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+<style>
+:root{
+  --brand:#0c831f;--brand-d:#0a6a19;--brand-l:#e8f5ea;--accent:#f8cb46;
+  --ink:#1c1c1c;--ink2:#4b5563;--muted:#8b94a1;--line:#e8eaee;--bg:#f7f8fa;--white:#fff;--red:#e23744;
+  --r:14px;--shadow:0 1px 2px rgba(16,24,40,.06),0 4px 14px rgba(16,24,40,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font-family:inherit}
+.wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+/* top strip + header */
+.strip{background:var(--brand-d);color:#e6f6e8;font-size:13px;text-align:center;padding:7px 10px}
+header{position:sticky;top:0;z-index:30;background:var(--white);border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:22px;height:70px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:23px;letter-spacing:-.4px;color:var(--brand);text-decoration:none}
+.logo i{width:36px;height:36px;border-radius:10px;background:var(--brand);color:#fff;display:grid;place-items:center;font-style:normal;font-size:19px}
+.logo b{color:var(--ink)}
+.search{flex:1;position:relative;max-width:620px}
+.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted)}
+.search input{width:100%;height:44px;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:0 14px 0 44px;font-size:15px;outline:none;transition:.15s}
+.search input:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px var(--brand-l)}
+.cart-btn{margin-left:auto;display:flex;align-items:center;gap:10px;background:var(--brand);color:#fff;border:0;height:44px;padding:0 18px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;transition:.15s}
+.cart-btn:hover{background:var(--brand-d)}
+.cart-btn .n{background:#fff;color:var(--brand);border-radius:99px;min-width:22px;height:22px;display:grid;place-items:center;font-size:12px;padding:0 6px}
+
+/* hero */
+.hero{margin-top:22px;border-radius:20px;overflow:hidden;position:relative;color:#fff;
+  background:linear-gradient(105deg,rgba(6,78,24,.94) 0%,rgba(12,131,31,.82) 55%,rgba(12,131,31,.2) 100%),
+  url("https://commons.wikimedia.org/wiki/Special:FilePath/Fruit%20and%20vegetable%20stall.jpg?width=1400") center/cover,#0c831f}
+.hero .in{padding:46px 44px;max-width:620px}
+.tag{display:inline-block;background:var(--accent);color:#3a2e00;font-weight:700;font-size:12px;padding:5px 12px;border-radius:99px;letter-spacing:.4px}
+.hero h1{font-size:40px;line-height:1.12;margin:14px 0 10px;letter-spacing:-1px}
+.hero p{font-size:16px;opacity:.92;line-height:1.5}
+.hero .cta{margin-top:22px;display:inline-block;background:#fff;color:var(--brand-d);border:0;padding:13px 26px;border-radius:12px;font-weight:700;font-size:15px;cursor:pointer;text-decoration:none}
+.trust{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.trust div{background:#fff;border-radius:var(--r);padding:14px 16px;display:flex;gap:12px;align-items:center;box-shadow:var(--shadow)}
+.trust span{font-size:24px}.trust b{display:block;font-size:14px}.trust small{color:var(--muted);font-size:12px}
+
+/* section head */
+.sec{display:flex;align-items:center;justify-content:space-between;margin:30px 0 14px;gap:12px;flex-wrap:wrap}
+.sec h2{font-size:22px;letter-spacing:-.4px}
+.sort select{height:38px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff;font-size:14px;color:var(--ink2)}
+.chips{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:1px solid var(--line);background:#fff;color:var(--ink2);padding:9px 18px;border-radius:99px;cursor:pointer;white-space:nowrap;font-size:14px;font-weight:600;transition:.15s}
+.chip:hover{border-color:var(--brand);color:var(--brand)}
+.chip.active{background:var(--brand);border-color:var(--brand);color:#fff}
+
+/* products */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px;padding-bottom:50px}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;position:relative;transition:.18s}
+.card:hover{box-shadow:0 10px 28px rgba(16,24,40,.1);transform:translateY(-3px);border-color:transparent}
+.ph{height:190px;background:#f3f5f4;position:relative;display:grid;place-items:center;font-size:72px;overflow:hidden}
+.ph img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.card:hover .ph img{transform:scale(1.06)}
+.off{position:absolute;top:0;left:12px;background:var(--brand);color:#fff;font-size:11px;font-weight:800;padding:8px 7px 11px;text-align:center;line-height:1.1;clip-path:polygon(0 0,100% 0,100% 100%,50% 85%,0 100%);z-index:2}
+.off em{display:block;font-style:normal;font-size:10px;font-weight:700}
+.info{padding:14px;display:flex;flex-direction:column;gap:5px;flex:1}
+.cat{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.name{font-weight:700;font-size:15.5px;line-height:1.3}
+.unit{color:var(--muted);font-size:13px}
+.rate{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+.rate .b{background:#1f9d3a;color:#fff;font-weight:700;padding:2px 7px;border-radius:6px;font-size:12px}
+.rate .b.mid{background:#e0a100}
+.bot{margin-top:auto;display:flex;align-items:flex-end;justify-content:space-between;padding-top:10px}
+.price b{font-size:18px;display:block;line-height:1.1}
+.price s{color:var(--muted);font-size:12.5px}
+.add{border:1.5px solid var(--brand);background:var(--brand-l);color:var(--brand);font-weight:800;padding:9px 22px;border-radius:10px;cursor:pointer;font-size:14px;transition:.15s}
+.add:hover{background:var(--brand);color:#fff}
+.stepper{display:flex;align-items:center;background:var(--brand);color:#fff;border-radius:10px;overflow:hidden}
+.stepper button{width:34px;height:36px;border:0;background:transparent;color:#fff;font-size:19px;cursor:pointer}
+.stepper button:hover{background:var(--brand-d)}
+.stepper span{min-width:24px;text-align:center;font-weight:700;font-size:14px}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:70px 0;font-size:16px}
+
+/* footer */
+footer{background:#111815;color:#aab4ae;margin-top:20px;padding:34px 0;font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap}
+footer b{color:#fff}
+
+/* drawer */
+.ov{position:fixed;inset:0;background:rgba(10,15,12,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:.2s;z-index:40}
+.ov.show{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:min(430px,100%);background:#fff;z-index:50;display:flex;flex-direction:column;transform:translateX(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);box-shadow:-10px 0 40px rgba(0,0,0,.15)}
+.drawer.open{transform:none}
+.dh{display:flex;justify-content:space-between;align-items:center;padding:18px 20px;border-bottom:1px solid var(--line)}
+.dh h3{font-size:19px}
+.x{border:0;background:var(--bg);width:34px;height:34px;border-radius:50%;font-size:20px;cursor:pointer}
+.saveband{background:var(--brand-l);color:var(--brand-d);font-size:13px;font-weight:600;padding:10px 20px}
+.db{flex:1;overflow:auto;padding:6px 20px}
+.it{display:flex;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line)}
+.it .im{width:58px;height:58px;border-radius:10px;background:#f3f5f4;overflow:hidden;display:grid;place-items:center;font-size:28px;flex:none}
+.it .im img{width:100%;height:100%;object-fit:cover}
+.it .t{flex:1;min-width:0}.it .t b{font-size:14px;display:block}.it .t small{color:var(--muted);font-size:12.5px}
+.it .stepper button{width:28px;height:30px;font-size:16px}
+.it .amt{font-weight:700;font-size:14px;min-width:58px;text-align:right}
+.df{padding:18px 20px;border-top:1px solid var(--line);background:#fcfcfd}
+.row{display:flex;justify-content:space-between;margin:6px 0;font-size:14px;color:var(--ink2)}
+.row.sv{color:var(--brand)}
+.row.tot{font-size:18px;font-weight:800;color:var(--ink);margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+.free{color:var(--brand);font-weight:700}
+.bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--brand);transition:.3s}
+.hint{font-size:12px;color:var(--ink2)}
+.primary{width:100%;margin-top:14px;background:var(--brand);color:#fff;border:0;padding:15px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;transition:.15s}
+.primary:hover{background:var(--brand-d)}
+.primary:disabled{background:#9ca3af;cursor:not-allowed}
+.emptyc{text-align:center;padding:90px 10px;color:var(--muted)}
+.emptyc span{font-size:60px;display:block;margin-bottom:10px}
+
+/* modal */
+.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+.modal.show{display:flex}
+.box{background:#fff;border-radius:18px;padding:26px;width:min(470px,100%);max-height:94vh;overflow:auto;box-shadow:0 30px 80px rgba(0,0,0,.3)}
+.box h3{font-size:20px;margin-bottom:4px}
+.box .sub{color:var(--muted);font-size:13px;margin-bottom:14px}
+.f{margin-bottom:12px}
+.f label{display:block;font-size:12.5px;font-weight:600;color:var(--ink2);margin-bottom:5px}
+.f input,.f textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:14.5px;outline:none}
+.f input:focus,.f textarea:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-l)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sum{background:var(--bg);border-radius:12px;padding:12px 14px;margin:6px 0 4px}
+.secure{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:var(--muted);margin-top:10px}
+.link{background:none;border:0;color:var(--muted);margin-top:8px;cursor:pointer;width:100%;font-size:14px}
+.done{text-align:center}.done .ck{width:72px;height:72px;border-radius:50%;background:var(--brand-l);color:var(--brand);display:grid;place-items:center;font-size:38px;margin:0 auto 14px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translate(-50%,20px);background:#1c1c1c;color:#fff;padding:12px 20px;border-radius:12px;z-index:80;opacity:0;pointer-events:none;transition:.25s;font-size:14px}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(max-width:820px){
+  .trust{grid-template-columns:1fr 1fr}
+  .hero .in{padding:30px 22px}.hero h1{font-size:28px}
+  .logo span{display:none}.hbar{gap:12px}
+  .cart-btn .lbl{display:none}
+}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr;gap:12px}.ph{height:140px}.add{padding:8px 14px}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="strip">🚚 Free delivery on orders above ₹499 &nbsp;•&nbsp; Delivery in 30–45 minutes</div>
+
+<header>
+  <div class="wrap hbar">
+    <a class="logo" href="#"><i>🛒</i><span>Fresh<b>Cart</b></span></a>
+    <div class="search">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="search" placeholder='Search "milk", "tomato", "rice"...' autocomplete="off">
+    </div>
+    <button class="cart-btn" id="openCart">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 6h15l-1.5 9h-12z"/><path d="M6 6 5 3H2"/><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg>
+      <span class="lbl" id="hTotal">My Cart</span><span class="n" id="count">0</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <div class="in">
+      <span class="tag">FARM FRESH • EVERY DAY</span>
+      <h1>Groceries you can trust, delivered to your door</h1>
+      <p>Hand-picked fruits, vegetables, dairy and pantry staples at the best prices — with up to 30% off.</p>
+      <a class="cta" href="#shop">Start shopping</a>
+    </div>
+  </section>
+
+  <section class="trust">
+    <div><span>⚡</span><p><b>Fast delivery</b><small>30–45 minutes</small></p></div>
+    <div><span>🌿</span><p><b>Fresh quality</b><small>Sourced daily</small></p></div>
+    <div><span>🏷️</span><p><b>Best prices</b><small>Up to 30% off</small></p></div>
+    <div><span>🔒</span><p><b>Secure payments</b><small>Powered by Cashfree</small></p></div>
+  </section>
+
+  <div class="sec" id="shop">
+    <h2 id="title">All products</h2>
+    <div class="sort"><select id="sort">
+      <option value="rel">Sort: Relevance</option>
+      <option value="pl">Price: Low to High</option>
+      <option value="ph">Price: High to Low</option>
+      <option value="rt">Top rated</option>
+      <option value="ds">Biggest discount</option>
+    </select></div>
+  </div>
+  <div class="chips" id="chips"></div>
+  <main class="grid" id="grid" style="margin-top:18px"></main>
+</div>
+
+<footer>
+  <div class="wrap">
+    <div><b>FreshCart</b><br>Quality groceries, delivered fresh.</div>
+    <div>Payments secured by Cashfree Payments<br>© 2026 FreshCart. All rights reserved.</div>
+  </div>
+</footer>
+
+<div class="ov" id="ov"></div>
+<aside class="drawer" id="drawer">
+  <div class="dh"><h3>My Cart</h3><button class="x" id="closeCart">&times;</button></div>
+  <div id="saveband"></div>
+  <div class="db" id="cartBody"></div>
+  <div class="df" id="cartFoot" style="display:none"></div>
+</aside>
+
+<div class="ov" id="ov2" style="z-index:55"></div>
+<div class="modal" id="modal">
+  <form class="box" id="form" autocomplete="on">
+    <h3>Delivery details</h3>
+    <p class="sub">Enter your details to continue to secure payment.</p>
+    <div class="f"><label>Full name</label><input name="name" required autocomplete="name"></div>
+    <div class="two">
+      <div class="f"><label>Phone number</label><input name="phone" required pattern="[0-9]{10}" maxlength="10" inputmode="numeric" autocomplete="tel"></div>
+      <div class="f"><label>Email</label><input name="email" type="email" required autocomplete="email"></div>
+    </div>
+    <div class="f"><label>Delivery address</label><textarea name="address" rows="2" required autocomplete="street-address"></textarea></div>
+    <div class="sum" id="sum"></div>
+    <button class="primary" id="payBtn" type="submit">Pay securely with Cashfree</button>
+    <div class="secure">🔒 256-bit encrypted • UPI, Cards, Netbanking, Wallets</div>
+    <button class="link" type="button" id="cancelPay">Cancel</button>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= CONFIG ================= */
+const CONFIG = {
+  cashfreeMode: "sandbox",   // "sandbox" for testing, "production" for live
+  // Cashfree requires a payment_session_id created with your SECRET key, which must never be in browser code.
+  // Point this to a tiny serverless endpoint (Cloudflare Worker / Netlify / Vercel) returning { payment_session_id }.
+  // Leave empty for DEMO mode (payment is simulated so you can test the full flow).
+  createOrderUrl: "",
+  freeDeliveryAbove: 499,
+  deliveryFee: 40
+};
+
+/* ================= PRODUCTS =================
+   f = Wikimedia Commons file name (real photo), s = search term used if that file is unavailable */
+const P = [
+ {id:1,name:"Fresh Red Apples",cat:"Fruits",unit:"1 kg",price:149,mrp:199,rating:4.5,rev:1280,em:"🍎",f:"Red Apple.jpg",s:"red apple fruit"},
+ {id:2,name:"Robusta Bananas",cat:"Fruits",unit:"12 pcs",price:49,mrp:60,rating:4.3,rev:2210,em:"🍌",f:"Banana-Single.jpg",s:"bananas fruit bunch"},
+ {id:3,name:"Juicy Oranges",cat:"Fruits",unit:"1 kg",price:99,mrp:130,rating:4.4,rev:870,em:"🍊",f:"Orange-Fruit-Pieces.jpg",s:"oranges fruit"},
+ {id:4,name:"Seedless Grapes",cat:"Fruits",unit:"500 g",price:89,mrp:120,rating:4.2,rev:640,em:"🍇",f:"Table grapes on white.jpg",s:"grapes bunch"},
+ {id:5,name:"Watermelon",cat:"Fruits",unit:"1 pc (~3 kg)",price:79,mrp:99,rating:4.1,rev:420,em:"🍉",f:"Watermelon cross BNC.jpg",s:"watermelon sliced"},
+ {id:6,name:"Fresh Tomatoes",cat:"Vegetables",unit:"1 kg",price:35,mrp:50,rating:4.2,rev:3100,em:"🍅",f:"Tomato je.jpg",s:"tomatoes red"},
+ {id:7,name:"Potatoes",cat:"Vegetables",unit:"1 kg",price:30,mrp:40,rating:4.3,rev:2800,em:"🥔",f:"Patates.jpg",s:"potatoes"},
+ {id:8,name:"Onions",cat:"Vegetables",unit:"1 kg",price:40,mrp:55,rating:4.4,rev:3500,em:"🧅",f:"Onion on White.JPG",s:"onions"},
+ {id:9,name:"Carrots",cat:"Vegetables",unit:"500 g",price:32,mrp:45,rating:4.3,rev:910,em:"🥕",f:"Carrots of many colors.jpg",s:"carrots"},
+ {id:10,name:"Broccoli",cat:"Vegetables",unit:"1 pc",price:59,mrp:80,rating:4.0,rev:380,em:"🥦",f:"Broccoli and cross section edit.jpg",s:"broccoli"},
+ {id:11,name:"Green Chillies",cat:"Vegetables",unit:"100 g",price:12,mrp:15,rating:4.1,rev:760,em:"🌶️",f:"Green chilli.jpg",s:"green chili peppers"},
+ {id:12,name:"Full Cream Milk",cat:"Dairy",unit:"1 L",price:68,mrp:72,rating:4.6,rev:5400,em:"🥛",f:"Milk glass.jpg",s:"glass of milk"},
+ {id:13,name:"Farm Fresh Eggs",cat:"Dairy",unit:"12 pcs",price:84,mrp:100,rating:4.5,rev:2600,em:"🥚",f:"Chicken egg 2009-06-04.jpg",s:"eggs carton"},
+ {id:14,name:"Salted Butter",cat:"Dairy",unit:"500 g",price:275,mrp:300,rating:4.7,rev:1900,em:"🧈",f:"Western-pack-butter.jpg",s:"butter block"},
+ {id:15,name:"Cheese Slices",cat:"Dairy",unit:"200 g",price:120,mrp:140,rating:4.4,rev:1100,em:"🧀",f:"Cheese platter.jpg",s:"cheese"},
+ {id:16,name:"Whole Wheat Bread",cat:"Bakery",unit:"400 g",price:45,mrp:55,rating:4.2,rev:1700,em:"🍞",f:"Anadama bread (1).jpg",s:"loaf of bread"},
+ {id:17,name:"Chocolate Cookies",cat:"Snacks",unit:"250 g",price:75,mrp:99,rating:4.3,rev:1500,em:"🍪",f:"Chocolate Chip Cookies - kimberlykv.jpg",s:"chocolate chip cookies"},
+ {id:18,name:"Classic Potato Chips",cat:"Snacks",unit:"150 g",price:40,mrp:50,rating:4.1,rev:2300,em:"🥔",f:"Potato-Chips.jpg",s:"potato chips"},
+ {id:19,name:"Basmati Rice",cat:"Staples",unit:"5 kg",price:549,mrp:699,rating:4.6,rev:4200,em:"🍚",f:"Basmati.jpg",s:"basmati rice"},
+ {id:20,name:"Sunflower Oil",cat:"Staples",unit:"1 L",price:149,mrp:185,rating:4.4,rev:3300,em:"🫒",f:"Sunflower oil.jpg",s:"sunflower oil bottle"},
+ {id:21,name:"Toor Dal",cat:"Staples",unit:"1 kg",price:159,mrp:190,rating:4.5,rev:2000,em:"🫘",f:"Toor dal.jpg",s:"toor dal pigeon peas"},
+ {id:22,name:"Fresh Orange Juice",cat:"Beverages",unit:"1 L",price:110,mrp:130,rating:4.2,rev:980,em:"🧃",f:"Orange juice 1.jpg",s:"orange juice glass"},
+ {id:23,name:"Green Tea",cat:"Beverages",unit:"25 bags",price:135,mrp:165,rating:4.3,rev:870,em:"🍵",f:"Green tea 3 (cropped).jpg",s:"green tea cup"},
+ {id:24,name:"Premium Coffee",cat:"Beverages",unit:"200 g",price:240,mrp:300,rating:4.6,rev:1400,em:"☕",f:"A small cup of coffee.JPG",s:"cup of coffee"}
+];
+P.forEach(p=>p.off=Math.round((p.mrp-p.price)/p.mrp*100));
+
+/* ================= IMAGES (real photos with fallbacks) ================= */
+const COMMONS="https://commons.wikimedia.org/";
+const imgCache=(()=>{try{return JSON.parse(localStorage.getItem("fc_img2")||"{}")}catch(e){return{}}})();
+const saveImg=()=>{try{localStorage.setItem("fc_img2",JSON.stringify(imgCache))}catch(e){}};
+const photo=p=>imgCache[p.id]||`${COMMONS}wiki/Special:FilePath/${encodeURIComponent(p.f)}?width=480`;
+function imgTag(p){return `<img src="${photo(p)}" alt="${p.name}" loading="lazy" referrerpolicy="no-referrer" data-pid="${p.id}">`}
+// if the first photo fails, search Commons for a real photo; if that fails too, show the emoji
+document.addEventListener("error",async e=>{
+  const el=e.target; if(el.tagName!=="IMG"||!el.dataset.pid)return;
+  const p=P.find(x=>x.id==el.dataset.pid);
+  if(el.dataset.tried){el.replaceWith(Object.assign(document.createTextNode(p.em)));return}
+  el.dataset.tried="1";
+  try{
+    const u=`${COMMONS}w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=6&gsrlimit=6&gsrsearch=${encodeURIComponent(p.s+" filetype:bitmap")}&prop=imageinfo&iiprop=url|mime&iiurlwidth=480`;
+    const r=await (await fetch(u)).json();
+    const pages=Object.values(r.query.pages).sort((a,b)=>a.index-b.index);
+    const hit=pages.find(x=>x.imageinfo&&/jpeg|png/.test(x.imageinfo[0].mime));
+    if(!hit)throw 0;
+    imgCache[p.id]=hit.imageinfo[0].thumburl;saveImg();
+    el.src=imgCache[p.id];
+  }catch(_){el.replaceWith(Object.assign(document.createTextNode(p.em)))}
+},true);
+
+/* ================= STATE ================= */
+let cart={};try{cart=JSON.parse(localStorage.getItem("fc_cart")||"{}")}catch(e){}
+let cat="All",q="",sort="rel";
+const $=id=>document.getElementById(id);
+const inr=n=>"₹"+n.toLocaleString("en-IN");
+const persist=()=>{try{localStorage.setItem("fc_cart",JSON.stringify(cart))}catch(e){}};
+function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),2200)}
+
+/* ================= PRODUCTS UI ================= */
+function renderChips(){
+  const cats=["All",...new Set(P.map(p=>p.cat))];
+  $("chips").innerHTML=cats.map(c=>`<button class="chip ${c===cat?"active":""}" data-c="${c}">${c}</button>`).join("");
+}
+function renderGrid(){
+  let list=P.filter(p=>(cat==="All"||p.cat===cat)&&(p.name+" "+p.cat).toLowerCase().includes(q));
+  const s={pl:(a,b)=>a.price-b.price,ph:(a,b)=>b.price-a.price,rt:(a,b)=>b.rating-a.rating,ds:(a,b)=>b.off-a.off}[sort];
+  if(s)list=[...list].sort(s);
+  $("title").textContent=(cat==="All"?"All products":cat)+` (${list.length})`;
+  $("grid").innerHTML=list.length?list.map(p=>{
+    const n=cart[p.id]||0;
+    return `<article class="card">
+      <div class="off">${p.off}%<em>OFF</em></div>
+      <div class="ph">${imgTag(p)}</div>
+      <div class="info">
+        <div class="cat">${p.cat}</div>
+        <div class="name">${p.name}</div>
+        <div class="unit">${p.unit}</div>
+        <div class="rate"><span class="b ${p.rating<4.2?"mid":""}">★ ${p.rating}</span>(${p.rev.toLocaleString("en-IN")})</div>
+        <div class="bot">
+          <div class="price"><b>${inr(p.price)}</b><s>${inr(p.mrp)}</s></div>
+          ${n?`<div class="stepper"><button data-m="${p.id}">−</button><span>${n}</span><button data-p="${p.id}">+</button></div>`
+             :`<button class="add" data-a="${p.id}">ADD</button>`}
+        </div>
+      </div></article>`}).join(""):`<div class="empty">😕 No products found for “${q}”</div>`;
+}
+
+/* ================= CART ================= */
+function change(id,d){cart[id]=(cart[id]||0)+d;if(cart[id]<=0)delete cart[id];persist();renderAll()}
+function totals(){
+  let sub=0,mrp=0,items=0;
+  for(const id in cart){const p=P.find(x=>x.id==id);sub+=p.price*cart[id];mrp+=p.mrp*cart[id];items+=cart[id]}
+  const delivery=sub===0||sub>=CONFIG.freeDeliveryAbove?0:CONFIG.deliveryFee;
+  return {sub,mrp,items,delivery,saved:mrp-sub,total:sub+delivery};
+}
+function renderCart(){
+  const t=totals();$("count").textContent=t.items;
+  $("hTotal").textContent=t.items?inr(t.total):"My Cart";
+  const ids=Object.keys(cart);
+  $("saveband").innerHTML=t.saved?`<div class="saveband">🎉 You’re saving ${inr(t.saved)} on this order</div>`:"";
+  $("cartBody").innerHTML=ids.length?ids.map(id=>{
+    const p=P.find(x=>x.id==id),n=cart[id];
+    return `<div class="it"><div class="im">${imgTag(p)}</div>
+      <div class="t"><b>${p.name}</b><small>${p.unit} • ${inr(p.price)}</small></div>
+      <div class="stepper"><button data-m="${id}">−</button><span>${n}</span><button data-p="${id}">+</button></div>
+      <div class="amt">${inr(p.price*n)}</div></div>`}).join("")
+    :`<div class="emptyc"><span>🛒</span><b>Your cart is empty</b><p style="margin-top:6px;font-size:14px">Add items to get started</p></div>`;
+  const f=$("cartFoot");f.style.display=ids.length?"block":"none";
+  if(ids.length){
+    const pct=Math.min(100,t.sub/CONFIG.freeDeliveryAbove*100);
+    f.innerHTML=`
+    <div class="hint">${t.delivery?`Add <b>${inr(CONFIG.freeDeliveryAbove-t.sub)}</b> more for <b>free delivery</b>`:"🎉 You’ve unlocked <b>free delivery</b>"}</div>
+    <div class="bar"><i style="width:${pct}%"></i></div>
+    <div class="row"><span>Item total (MRP)</span><span><s>${inr(t.mrp)}</s></span></div>
+    <div class="row sv"><span>Discount</span><span>− ${inr(t.saved)}</span></div>
+    <div class="row"><span>Subtotal</span><span>${inr(t.sub)}</span></div>
+    <div class="row"><span>Delivery fee</span><span>${t.delivery?inr(t.delivery):'<span class="free">FREE</span>'}</span></div>
+    <div class="row tot"><span>Grand total</span><span>${inr(t.total)}</span></div>
+    <button class="primary" id="checkout">Proceed to Pay • ${inr(t.total)}</button>`;
+  }
+}
+function renderAll(){renderGrid();renderCart()}
+const openCart=o=>{$("drawer").classList.toggle("open",o);$("ov").classList.toggle("show",o)};
+const showModal=o=>{$("modal").classList.toggle("show",o);$("ov2").classList.toggle("show",o)};
+
+/* ================= EVENTS ================= */
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");if(!t)return;
+  if(t.dataset.a){change(+t.dataset.a,1);toast("Added to cart")}
+  else if(t.dataset.p)change(+t.dataset.p,1);
+  else if(t.dataset.m)change(+t.dataset.m,-1);
+  else if(t.dataset.c){cat=t.dataset.c;renderChips();renderGrid()}
+  else if(t.id==="checkout"){
+    const x=totals();openCart(false);
+    $("sum").innerHTML=`<div class="row"><span>${x.items} item${x.items>1?"s":""}</span><span>${inr(x.sub)}</span></div>
+      <div class="row"><span>Delivery</span><span>${x.delivery?inr(x.delivery):"FREE"}</span></div>
+      <div class="row tot" style="margin-top:6px;padding-top:8px"><span>Amount to pay</span><span>${inr(x.total)}</span></div>`;
+    showModal(true);
+  }
+});
+$("search").addEventListener("input",e=>{q=e.target.value.toLowerCase().trim();renderGrid()});
+$("sort").addEventListener("change",e=>{sort=e.target.value;renderGrid()});
+$("openCart").onclick=()=>openCart(true);
+$("closeCart").onclick=$("ov").onclick=()=>openCart(false);
+$("cancelPay").onclick=$("ov2").onclick=()=>showModal(false);
+
+/* ================= CASHFREE PAYMENT ================= */
+$("form").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const f=Object.fromEntries(new FormData(e.target));
+  const t=totals(),btn=$("payBtn");
+  btn.disabled=true;btn.textContent="Processing…";
+  const orderId="ORD"+Date.now();
+  try{
+    if(!CONFIG.createOrderUrl){
+      await new Promise(r=>setTimeout(r,1200));   // DEMO MODE
+      success(orderId,f,t,true);
+    }else{
+      const res=await fetch(CONFIG.createOrderUrl,{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({order_id:orderId,order_amount:t.total,order_currency:"INR",
+          customer_details:{customer_id:"cust_"+f.phone,customer_name:f.name,customer_email:f.email,customer_phone:f.phone}})});
+      const data=await res.json();
+      if(!data.payment_session_id)throw new Error("Could not start payment");
+      const cashfree=Cashfree({mode:CONFIG.cashfreeMode});
+      const result=await cashfree.checkout({paymentSessionId:data.payment_session_id,redirectTarget:"_modal"});
+      if(result.error)toast(result.error.message||"Payment failed");
+      else if(result.paymentDetails)success(orderId,f,t,false);
+    }
+  }catch(err){toast("Payment error: "+err.message)}
+  btn.disabled=false;btn.textContent="Pay securely with Cashfree";
+});
+
+function success(orderId,f,t,demo){
+  showModal(false);cart={};persist();renderAll();
+  const d=document.createElement("div");d.className="modal show";d.style.zIndex=70;
+  d.innerHTML=`<div class="box done"><div class="ck">✓</div><h3>Order placed successfully!</h3>
+    <p class="sub" style="margin-top:8px">Order ID <b>${orderId}</b><br>Amount paid <b>${inr(t.total)}</b><br>Delivering to <b>${f.name}</b> • ${f.address}</p>
+    ${demo?'<p style="font-size:12px;color:#b45309;background:#fff7e0;padding:8px;border-radius:8px">Demo mode – no real payment was taken.</p>':""}
+    <button class="primary" id="doneBtn">Continue shopping</button></div>`;
+  document.body.appendChild(d);$("ov2").classList.add("show");
+  $("doneBtn").onclick=()=>{d.remove();$("ov2").classList.remove("show")};
+}
+
+renderChips();renderAll();
+</script>
+</body>
+</html>
